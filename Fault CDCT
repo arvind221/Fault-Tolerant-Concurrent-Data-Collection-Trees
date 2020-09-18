@@ -1,0 +1,393 @@
+import math
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.pyplot as plt
+from matplotlib import cm
+import numpy as np
+
+
+n=int(input("Enter number of nodes:"))
+k=int(input("Enter value of k:"))
+
+def calculate_umax(n,k): #function to calculate umax
+    umax=math.floor(math.fabs(n)/k) 
+    return umax
+
+
+
+streams=[]
+nodes=[]
+time=[] 
+time1=[]
+def timeslots_actual(utemp): #function to calculate T1 and T2
+    global t1
+    global t2
+    t=0
+    if(utemp%2==0 and utemp>=4): #umax is even and only alpha rings will be formed
+        t1=math.floor((2*(math.fabs(i)-utemp)/utemp)+1)
+        if(t1<0):
+            t=0
+            time.append(t)
+        else:
+            temp2=math.fabs(i)-(t1*(utemp/2)) 
+            if(temp2>0):
+                t2=math.floor(math.log2(temp2))+1
+            else:
+                t2=0
+            t=t1+t2
+            time.append(t)
+
+    elif(utemp==2): #only one alpha ring
+        t1=math.floor((2*(math.fabs(i)-utemp)/utemp)+1)
+        if(t1<0):
+            t=0
+            time.append(t)
+        else:
+            temp2=math.fabs(i)-(t1*(utemp/2))
+            if(temp2>0):
+                t2=math.floor(math.log2(temp2))+1
+            else:
+                t2=0
+            t=t1+t2
+            time.append(t)
+
+    elif(utemp==3): #only beta ring
+        t1=math.floor((2*(math.fabs(i)-utemp)/(utemp+1))+1)
+        if(t1<0):
+            t=0
+            time.append(t)
+        else:
+            temp2=math.fabs(i)-(t1*((utemp+1)/2))
+            if(temp2>0):
+                t2=math.floor(math.log2(temp2))+1
+            else:
+                t2=0
+            t=t1+t2
+            time.append(t)
+
+    elif(utemp%2!=0 and utemp>=5): #multiple rings 
+        t1=math.floor((2*(math.fabs(i)-utemp)/(utemp+1))+1)
+        if(t1<0):
+            t=0
+            time.append(t)
+        else:
+            temp2=math.fabs(i)-(t1*((utemp+1)/2))
+            if(temp2>0):
+                t2=math.floor(math.log2(temp2))+1
+            else:
+                t2=0
+            t=t1+t2
+            time.append(t)
+
+    elif(utemp==0 or utemp==1):
+        if(t1<0):
+            t=0
+            time.append(t)
+        t=0
+        time.append(t)
+
+    print("T1: ",t1)
+    print("T2: ",t2)
+    print("T1+T2: ",t1+t2)
+    
+def timeslots_error(utemp): #function to calculate T1 and T2
+    global t1
+    global t2
+    t=0
+    if(utemp%2==0 and utemp>=4): #umax is even and only alpha rings will be formed
+        t1=math.floor((2*(math.fabs(i)-utemp)/utemp)+1)
+        if(t1<0):
+            t=0
+            time1.append(t)
+        else:
+            temp2=math.fabs(i)-(t1*(utemp/2)) 
+            if(temp2>0):
+                t2=math.floor(math.log2(temp2))+1
+            else:
+                t2=0
+            t=t1+t2
+            time1.append(t)
+
+    elif(utemp==2): #only one alpha ring
+        t1=math.floor((2*(math.fabs(i)-utemp)/utemp)+1)
+        if(t1<0):
+            t=0
+            time1.append(t)
+        else:
+            temp2=math.fabs(i)-(t1*(utemp/2))
+            if(temp2>0):
+                t2=math.floor(math.log2(temp2))+1
+            else:
+                t2=0
+            t=t1+t2
+            time1.append(t)
+
+    elif(utemp==3): #only beta ring
+        t1=math.floor((2*(math.fabs(i)-utemp)/(utemp+1))+1)
+        if(t1<0):
+            t=0
+            time1.append(t)
+        else:
+            temp2=math.fabs(i)-(t1*((utemp+1)/2))
+            if(temp2>0):
+                t2=math.floor(math.log2(temp2))+1
+            else:
+                t2=0
+            t=t1+t2
+            time1.append(t)
+
+    elif(utemp%2!=0 and utemp>=5): #multiple rings 
+        t1=math.floor((2*(math.fabs(i)-utemp)/(utemp+1))+1)
+        if(t1<0):
+            t=0
+            time1.append(t)
+        else:
+            temp2=math.fabs(i)-(t1*((utemp+1)/2))
+            if(temp2>0):
+                t2=math.floor(math.log2(temp2))+1
+            else:
+                t2=0
+            t=t1+t2
+            time1.append(t)
+
+    elif(utemp==0 or utemp==1):
+        if(t1<0):
+            t=0
+            time1.append(t)
+        t=0
+        time1.append(t)
+
+    print("T1: ",t1)
+    print("T2: ",t2)
+    print("T1+T2: ",t1+t2)
+
+def construct(i,j): #function to print structure of rings with n nodes and k concurrent streams
+    x=2*j
+    global nAlpha, nBeta, nAlphaNodes, nBetaNodes
+    global nAlpha_temp, nBeta_temp, nAlphaNodes_temp, nBetaNodes_temp
+    sum1=0
+
+    global listalpha
+    listalpha=list()
+    rings=list()
+    utemp=math.floor(math.fabs(i)/j)
+    if(utemp==2): #one alpha ring
+        nAlpha=1
+        nBeta=0
+        nodes=2*j
+        while(i>nodes):
+            nodes+=1
+        listalpha.append(nodes)
+        nBetaNodes=0
+        nAlphaNodes=listalpha
+
+    elif(utemp==3): #one beta ring
+        nAlpha=0
+        nBeta=1
+        nAlphaNodes=0
+        nodes=3*j
+        nBetaNodes=3*j
+        while(i>nodes):
+            if(nBetaNodes<(2*t1)+1):
+                nodes+=1
+        nBetaNodes=nodes
+
+    elif(utemp%2==0 and utemp>=4): #more than one alpha rings
+        nAlpha=math.floor(utemp/2)
+        nBeta=0
+        for a in range(1,(nAlpha+1)):
+            listalpha.append(x)
+            sum1+=x
+        diff=i-sum1
+        while(diff!=0):
+            if(diff<=len(listalpha)):
+                for m in range(0,diff):
+                    listalpha[m]=listalpha[m]+1
+                    diff-=1
+            elif(diff>len(listalpha)):
+                for m in range(0,len(listalpha)):
+                    listalpha[m]=listalpha[m]+1
+                    diff-=1
+        nAlphaNodes=listalpha
+        nBetaNodes=0
+
+    elif(utemp%2!=0 and utemp>=5): #Multiple rings
+        nAlpha=math.floor((utemp-3)/2)
+        nBeta=1
+        nAlphaNodes=nAlpha*2*j
+        nBetaNodes=3*j
+        diff=math.floor(i-(((nAlpha*2*j)+(nBeta*3*j))))
+        for a in range(1,(nAlpha+1)):
+            listalpha.append(x)
+        while(diff!=0):
+            if(nBetaNodes<((2*t1)+1)):
+                nBetaNodes+=1
+                diff-=1
+            else:
+                print("inside")
+                while(diff!=0):
+                    if(diff<len(listalpha)):
+                        for m in range(0,diff):
+                            listalpha[m]=listalpha[m]+1
+                            diff-=1
+                    elif(diff>len(listalpha)):
+                        for m in range(0,len(listalpha)):
+                            listalpha[m]=listalpha[m]+1
+                            diff-=1
+        nAlphaNodes=listalpha
+
+    if(nAlpha>0):
+        print("Number of alpha ring(s):",nAlpha)
+    if(nBeta>0):
+        print("Number of beta ring(s):",nBeta)  
+    if(nAlphaNodes):
+        print("Alpha rings nodes:",nAlphaNodes)  
+    if(nBetaNodes>0):
+        print("Beta ring nodes:",nBetaNodes)
+        
+    nAlpha_temp = nAlpha
+    nBeta_temp= nBeta
+    nAlphaNodes_temp= nAlphaNodes
+    nBetaNodes_temp= nBetaNodes
+
+
+
+
+for a in range(1,k+1): #list of streams
+    streams.append(a) 
+    
+for i in range(30,n+1,15): #list of nodes 
+    nodes.append(i) 
+    
+    for j in range(1,k+1):
+        print("Nodes:",i)
+        print("Data Streams:",j)
+        utemp=calculate_umax(i,j) #calculates umax before fault occurs
+
+        
+        timeslots_actual(utemp)  
+        
+        construct(i,j) #gives the structures of rings
+
+        
+    
+        print("\nSingle node fault occurs!\n")
+        print("Nodes:",i-1)
+        print("Data Streams:",j)
+
+        new_umax=calculate_umax(i-1,j) #calculates umax after fault occurs
+        timeslots_error(new_umax) #calculates timeslots after fault occurs
+        
+    
+        if(new_umax==utemp): #determines where fault occurs and returns new structures of rings
+            print(listalpha)
+            if(new_umax%2==0): #Only alpha rings exist, fault brings no change in structure
+                alphaRing=1
+                maxpos = listalpha.index(max(listalpha))
+                minpos = listalpha.index(min(listalpha))
+                if (alphaRing==1): #fault in max alpha ring
+                    listalpha[maxpos]=listalpha[maxpos]-1
+                elif(alphaRing==2): #fault in min alpha ring
+                    print("1.Delete last node from alpha min")
+                    listalpha[minpos]-=1
+                    print("2.newNode=alphaMax.last_node")
+                    print("3.Insert newNode in alphaMin")
+                    listalpha[minpos]+=1
+                    print("4.Delete alphaMax.last_node")
+                    listalpha[maxpos]-=1
+                print("New list of alpha rings with nodes in each ring:\n")
+                print(listalpha)
+            elif(n>=3*j): #One beta and multiple alpha rings exist, fault brings no change in structure
+                ring=1
+                if(ring==1): #fault in beta ring
+                    print("1.Delete a node from beta ring structure")
+                    nBetaNodes_temp-=1
+                    if(nBetaNodes_temp<3*j): #if beta nodes go below 3k and condition is not satisfied
+                        for i in range(0,len(listalpha)):
+                            if listalpha[i]>=2*j: #check alpha rings with > 2k nodes
+                                print("2.newNode=alphaMax.last_node")
+                                listalpha[i]-=1
+                            break
+                        print("3.Insert newNode in beta ring")
+                        nBetaNodes_temp+=1
+                        print("4.Delete alphaMax.last_node")
+                    print("Nodes in beta ring:",nBetaNodes_temp)
+                    print("Alpha rings with nodes in each ring:",listalpha)
+
+                elif(ring==2): #fault in any alpha ring
+                    max_ring=max(listalpha)
+                    min_ring=min(listalpha)
+                    maxpos = listalpha.index(max(listalpha))
+                    minpos=listalpha.index(min(listalpha))
+                    if(max_ring==min_ring): #all alpha rings have the same number of nodes
+                        listalpha[0]-=1
+                        if(listalpha[0]<2*k):#check alpha rings satisfy 2k condition
+                            print("1.Delete a node from beta ring structure")
+                            print("2.newNode=betaRing.last_node")
+                            print("3.Insert newNode in alpha ring")
+                            print("4.Delete betaRing.last_node")
+                            nBetaNodes_temp-=1
+                            listalpha[0]+=1
+                    else:   
+                        alphaRing=1
+
+                        if (alphaRing==1): #fault in max alpha ring
+                            listalpha[maxpos]=listalpha[maxpos]-1
+                        elif(alphaRing==2): #fault in min alpha ring
+                            print("Delete last node from alpha min")
+                            listalpha[minpos]-=1
+                            print("newNode=alphaMax.last_node")
+                            print("Insert newNode in alphaMin")
+                            listalpha[minpos]+=1
+                            print("Delete alphaMax.last_node")
+                            listalpha[maxpos]-=1
+
+                    print("Nodes in beta ring:",nBetaNodes_temp)
+                    print("Alpha rings with nodes in each ring:",listalpha)
+
+        else: #umax changes and so does structure(alpha->beta) or (beta->alpha)
+            if (utemp%2!=0): #beta to alpha
+                construct(i-1,j)
+            else: #alpha to beta
+                construct(i-1,j)
+        print("---------------------------------------------------------------")
+counter=0
+for i in range(0,len(time)):
+    if(time1[i]>time[i]):
+        counter+=1
+print("Number of cases where time increases when fault occurs:",counter)
+
+# Plot of timeslots without occurence of fault    
+%matplotlib notebook
+fig = plt.figure()
+ax = fig.gca(projection = '3d')
+X=np.array(streams)
+Y=np.array(time)
+Z=np.array(nodes)
+Y=np.reshape(Y,(19,10))
+x,z= np.meshgrid(X, Z)
+print(X)
+print(Y)
+print(Z)
+surf=ax.plot_surface(x, z, Y, color=None,cmap=cm.coolwarm)
+ax.set_xlabel('Data Streams')
+ax.set_ylabel('Nodes')
+ax.set_zlabel('Time Slots')
+plt.show()
+
+
+# Plot of timeslots after occurence of fault 
+fig = plt.figure()
+ax = fig.gca(projection = '3d')
+X=np.array(streams)
+Y=np.array(time1)
+Z=np.array(nodes)
+Y=np.reshape(Y,(19,10))
+x,z= np.meshgrid(X, Z)
+print(X)
+print(Y)
+print(Z)
+surf=ax.plot_surface(x, z, Y, color=None,cmap=cm.coolwarm)
+ax.set_xlabel('Data Streams')
+ax.set_ylabel('Nodes')
+ax.set_zlabel('Time Slots')
+plt.show()
